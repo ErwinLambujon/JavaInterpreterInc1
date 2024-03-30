@@ -1,0 +1,5 @@
+BEGIN CODE
+    INT A = 5
+    CHAR a_1 = 'A'
+    DISPLAY: A a_1
+END CODE
