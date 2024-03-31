@@ -78,15 +78,17 @@ public class Lexer {
             } else {
                 return new Token(TokenType.IDENTIFIER, identifier);
             }
-        } else if (currentChar == '"' || currentChar == '\'') {
+        } if (currentChar == '"' || currentChar == '\'') {
             char quote = currentChar;
             StringBuilder literalBuilder = new StringBuilder();
+            literalBuilder.append(quote); // add the opening quote to the literal
             currentPosition++;
             while (currentPosition < code.length() && code.charAt(currentPosition) != quote) {
                 literalBuilder.append(code.charAt(currentPosition));
                 currentPosition++;
             }
             currentPosition++;
+            literalBuilder.append(quote); // add the closing quote to the literal
             return new Token(TokenType.LITERAL, literalBuilder.toString());
         } else if (currentChar == '#' || currentChar == '&' || currentChar == '$' || currentChar == ':' || currentChar == '=' || currentChar == ',') {
             currentPosition++;
@@ -95,6 +97,5 @@ public class Lexer {
             currentPosition++;
             return getNextToken();
         }
-
     }
 }

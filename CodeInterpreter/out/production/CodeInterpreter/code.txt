@@ -1,5 +1,5 @@
 BEGIN CODE
-    INT A = 5
-    CHAR a_1='A'
-    DISPLAY: A a_1
+    FLOAT A = 5
+    FLOAT B = A
+    DISPLAY: A B
 END CODE

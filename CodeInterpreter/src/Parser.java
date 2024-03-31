@@ -37,14 +37,37 @@ public class Parser {
         while (currentToken.type == Lexer.TokenType.IDENTIFIER || currentToken.value.equals("=")) {
             if (currentToken.type == Lexer.TokenType.IDENTIFIER) {
                 String varName = currentToken.value;
-                symbolTable.put(varName, varType);
                 eat(Lexer.TokenType.IDENTIFIER, varName);
                 if (currentToken.value.equals("=")) {
                     eat(Lexer.TokenType.SYMBOL, "=");
+                    if (currentToken.type == Lexer.TokenType.IDENTIFIER) {
+                        String valueVarName = currentToken.value;
+                        if (!symbolTable.containsKey(valueVarName) || !valueTable.containsKey(valueVarName)) {
+                            throw new RuntimeException("Semantic error: Variable " + valueVarName + " has an incorrect value assignment");
+                        }
+                        if (!symbolTable.get(valueVarName).equals(varType)) {
+                            throw new RuntimeException("Semantic error: Variable " + valueVarName + " is not of type " + varType);
+                        }
+                        valueTable.put(varName, valueTable.get(valueVarName));
+                        eat(Lexer.TokenType.IDENTIFIER, valueVarName);
+                    }
                     if (currentToken.type == Lexer.TokenType.LITERAL) {
                         String value = new String(currentToken.value);
                         eat(Lexer.TokenType.LITERAL, value);
+                        if (value.startsWith("'") && value.endsWith("'")) {
+                            if (varType.equals("INT") || varType.equals("FLOAT")) {
+                                throw new RuntimeException("Semantic error: " + varType + " variable " + varName + " cannot hold a character/string literal");
+                            }
+                            value = value.substring(1, value.length() - 1); // remove the enclosing single quotes
+                        } else {
+                            if (varType.equals("CHAR")) {
+                                throw new RuntimeException("Semantic error: CHAR variable " + varName + " must be assigned a character literal");
+                            }
+                        }
                         if (varType.equals("INT")) {
+                            if (!value.matches("[+-]?\\d+")) {
+                                throw new RuntimeException("Semantic error: INT variable " + varName + " can only hold an integer number");
+                            }
                             valueTable.put(varName, Integer.parseInt(value));
                         } else if(varType.equals("FLOAT")) {
                             if (!value.matches("[+-]?([0-9]*[.])?[0-9]+")) {
@@ -52,39 +75,38 @@ public class Parser {
                             }
                             valueTable.put(varName, Float.parseFloat(value));
                         } else if(varType.equals("CHAR")){
-                            if (value.length() > 1) {
+                            if (value.length() != 1) {
                                 throw new RuntimeException("Semantic error: CHAR variable " + varName + " can only hold a single character");
                             }
                             valueTable.put(varName, value);
                         } else if(varType.equals("BOOL")){
-                            if (!value.equals("TRUE") && !value.equals("FALSE")) {
-                                throw new RuntimeException("Semantic error: BOOL variable " + varName + " can only hold 'TRUE' or 'FALSE'");
+                            if (!value.equals("\"TRUE\"") && !value.equals("\"FALSE\"")) {
+                                throw new RuntimeException("Semantic error: BOOL variable " + varName + " can only hold \"TRUE\" or \"FALSE\"");
                             }
-                            valueTable.put(varName, Boolean.parseBoolean(value.toLowerCase()));
+                            valueTable.put(varName, Boolean.parseBoolean(value.substring(1, value.length() - 1).toLowerCase()));
+                        }
+                    } else {
+                        // Initialize with default value if not already initialized
+                        if (!valueTable.containsKey(varName)) {
+                            valueTable.put(varName, getDefaultInitialValue(varType));
                         }
                     }
-                } else {
-                    // Initialize with default value if not already initialized
-                    if (!valueTable.containsKey(varName)) {
-                        valueTable.put(varName, getDefaultInitialValue(varType));
+                    if (currentToken.value.equals(",")) {
+                        eat(Lexer.TokenType.SYMBOL, ",");
                     }
+                } else if (currentToken.value.equals("=")) {
+                    throw new RuntimeException("Syntax error: Unexpected token '='");
                 }
-                if (currentToken.value.equals(",")) {
-                    eat(Lexer.TokenType.SYMBOL, ",");
-                }
-            } else if (currentToken.value.equals("=")) {
-                throw new RuntimeException("Syntax error: Unexpected token '='");
-            }
 
-            // Check for end of input or next keyword
-            if (currentToken.type == Lexer.TokenType.EOF || (currentToken.type == Lexer.TokenType.KEYWORD && currentToken.value.equals("DISPLAY"))) {
-                break;
+                // Check for end of input or next keyword
+                if (currentToken.type == Lexer.TokenType.EOF || (currentToken.type == Lexer.TokenType.KEYWORD && currentToken.value.equals("DISPLAY"))) {
+                    break;
+                }
             }
         }
         System.out.println("symbolTable: " + symbolTable);
         System.out.println("valueTable: " + valueTable);
     }
-
     // Method to get default initial value based on variable type
     private String getDefaultInitialValue(String varType) {
         switch (varType) {
