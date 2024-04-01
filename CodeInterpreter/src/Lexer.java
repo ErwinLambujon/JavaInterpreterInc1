@@ -78,6 +78,7 @@ public class Lexer {
             } else {
                 return new Token(TokenType.IDENTIFIER, identifier);
             }
+
         } if (currentChar == '"' || currentChar == '\'') {
             char quote = currentChar;
             StringBuilder literalBuilder = new StringBuilder();

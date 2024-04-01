@@ -1,5 +1,4 @@
 BEGIN CODE
-    FLOAT A = 5
-    FLOAT B = A
-    DISPLAY: A B
+    BOOL A = "TRUE", B = "FALSE", INT C = 5, FLOAT D = 50.5
+    DISPLAY: A & B & C & D
 END CODE
